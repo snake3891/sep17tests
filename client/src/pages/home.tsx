@@ -4,20 +4,22 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { TaxResult, TAX_BRACKETS_2024, STANDARD_DEDUCTION_2024 } from "@shared/schema";
-import { DollarSign, Calculator, Info, BarChart2, AlertTriangle } from "lucide-react";
+import { TaxResult, TAX_BRACKETS_2024, STANDARD_DEDUCTION_2024, FILING_STATUS_LABELS, type FilingStatus } from "@shared/schema";
+import { DollarSign, Calculator, Info, BarChart2, AlertTriangle, Users } from "lucide-react";
 
 export default function Home() {
   const [income, setIncome] = useState("");
+  const [filingStatus, setFilingStatus] = useState<FilingStatus>("single");
   const [taxResult, setTaxResult] = useState<TaxResult | null>(null);
   const [inputError, setInputError] = useState("");
   const { toast } = useToast();
 
   const calculateTaxMutation = useMutation({
-    mutationFn: async (grossIncome: number) => {
-      const response = await apiRequest("POST", "/api/calculate-tax", { grossIncome });
+    mutationFn: async (data: { grossIncome: number; filingStatus: FilingStatus }) => {
+      const response = await apiRequest("POST", "/api/calculate-tax", data);
       return response.json() as Promise<TaxResult>;
     },
     onSuccess: (result) => {
@@ -102,7 +104,7 @@ export default function Home() {
       return;
     }
 
-    calculateTaxMutation.mutate(numericIncome);
+    calculateTaxMutation.mutate({ grossIncome: numericIncome, filingStatus });
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -111,7 +113,7 @@ export default function Home() {
     }
   };
 
-  const isBracketActive = (bracket: typeof TAX_BRACKETS_2024[0]) => {
+  const isBracketActive = (bracket: { min: number; max: number; rate: number }) => {
     if (!taxResult) return false;
     return taxResult.taxableIncome >= bracket.min && taxResult.taxableIncome < bracket.max;
   };
@@ -165,6 +167,30 @@ export default function Home() {
                         {inputError}
                       </div>
                     )}
+                  </div>
+
+                  <div>
+                    <Label htmlFor="filingStatus" className="block text-sm font-medium text-card-foreground mb-2">
+                      Filing Status
+                    </Label>
+                    <Select value={filingStatus} onValueChange={(value: FilingStatus) => setFilingStatus(value)}>
+                      <SelectTrigger 
+                        className="w-full bg-input border border-border rounded-lg text-card-foreground focus:ring-2 focus:ring-ring focus:border-ring transition-colors"
+                        data-testid="select-filing-status"
+                      >
+                        <div className="flex items-center gap-2">
+                          <Users className="w-4 h-4 text-muted-foreground" />
+                          <SelectValue placeholder="Select filing status" />
+                        </div>
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Object.entries(FILING_STATUS_LABELS).map(([key, label]) => (
+                          <SelectItem key={key} value={key}>
+                            {label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
 
                   <Button
@@ -297,7 +323,7 @@ export default function Home() {
                 </div>
                 
                 <div className="space-y-3">
-                  {TAX_BRACKETS_2024.map((bracket, index) => (
+                  {TAX_BRACKETS_2024[filingStatus].map((bracket, index) => (
                     <div
                       key={index}
                       className={`flex justify-between items-center py-2 text-sm border-b border-border/30 ${
@@ -319,7 +345,7 @@ export default function Home() {
                 
                 <div className="mt-4 p-3 bg-muted rounded-lg">
                   <p className="text-xs text-muted-foreground">
-                    These are marginal tax rates for single filers. Your highlighted bracket shows where your taxable income falls.
+                    These are marginal tax rates for {FILING_STATUS_LABELS[filingStatus].toLowerCase()}. Your highlighted bracket shows where your taxable income falls.
                   </p>
                 </div>
               </CardContent>

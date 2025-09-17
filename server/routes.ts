@@ -4,20 +4,23 @@ import { z } from "zod";
 import { taxCalculationSchema, TaxResult, TAX_BRACKETS_2024, STANDARD_DEDUCTION_2024 } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Calculate federal tax based on income
+  // Calculate federal tax based on income and filing status
   app.post("/api/calculate-tax", async (req, res) => {
     try {
-      const { grossIncome } = taxCalculationSchema.parse(req.body);
+      const { grossIncome, filingStatus } = taxCalculationSchema.parse(req.body);
       
-      const standardDeduction = STANDARD_DEDUCTION_2024.single;
+      const standardDeduction = STANDARD_DEDUCTION_2024[filingStatus];
       const taxableIncome = Math.max(0, grossIncome - standardDeduction);
+      
+      // Get tax brackets for the filing status
+      const brackets = TAX_BRACKETS_2024[filingStatus];
       
       // Calculate federal tax using progressive brackets
       let federalTax = 0;
       let remainingIncome = taxableIncome;
-      let applicableBracket = TAX_BRACKETS_2024[0];
+      let applicableBracket = brackets[0];
       
-      for (const bracket of TAX_BRACKETS_2024) {
+      for (const bracket of brackets) {
         if (remainingIncome <= 0) break;
         
         const taxableInBracket = Math.min(remainingIncome, bracket.max - bracket.min);
@@ -35,6 +38,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const result: TaxResult = {
         grossIncome,
+        filingStatus,
         standardDeduction,
         taxableIncome,
         federalTax,
