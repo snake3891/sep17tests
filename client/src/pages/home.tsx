@@ -224,6 +224,10 @@ export default function Home() {
                     <span className="text-muted-foreground">Married Filing Jointly</span>
                     <span className="font-medium">{formatCurrency(STANDARD_DEDUCTION_2024.marriedFilingJointly)}</span>
                   </div>
+                  <div className="flex justify-between items-center py-2 border-b border-border/50">
+                    <span className="text-muted-foreground">Married Filing Separately</span>
+                    <span className="font-medium">{formatCurrency(STANDARD_DEDUCTION_2024.marriedFilingSeparately)}</span>
+                  </div>
                   <div className="flex justify-between items-center py-2">
                     <span className="text-muted-foreground">Head of Household</span>
                     <span className="font-medium">{formatCurrency(STANDARD_DEDUCTION_2024.headOfHousehold)}</span>
@@ -232,7 +236,7 @@ export default function Home() {
                 
                 <div className="mt-4 p-3 bg-muted rounded-lg">
                   <p className="text-xs text-muted-foreground">
-                    This calculator uses the standard deduction for single filers ({formatCurrency(STANDARD_DEDUCTION_2024.single)}) by default.
+                    This calculator uses the standard deduction for {FILING_STATUS_LABELS[filingStatus].toLowerCase()} ({formatCurrency(STANDARD_DEDUCTION_2024[filingStatus])}).
                   </p>
                 </div>
               </CardContent>
