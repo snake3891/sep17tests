@@ -9,14 +9,27 @@ symbols = string.punctuation
 all = lower + upper + num + symbols
 temp = random.sample(all, length)
 import re
-pattern = r"[@?*]"
-password = ""
-if (re.search(pattern,str(temp)) is False):  
-    password = "".join(temp)
-else: 
-    password = "password error pass word contains invalid symbol"
-    temp = random.sample(all, length);
-    password = "".join(temp)
+pattern = r"[@?*/,]"
+password = "".join(temp)
+def invalid_char(password, pattern):
+
+    if (re.search(pattern,str(password)) is False):  
+        return False
+    else: 
+        return True
     
-print("Your new password is: " + password)
+    return bool(re.search(pattern,str(password)))
+    
+while invalid_char(password, pattern):
+    if invalid_char(password, pattern):
+        temp = random.sample(all, length)
+        password = "".join(temp)
+        print("Your new password is: " + password)
+        break
+    else:
+        password = "".join(temp)
+        print("Your new password is: " + password)
+        break
+        
+        
 # Simple Password Generator
