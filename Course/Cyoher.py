@@ -3,7 +3,7 @@ partialOne=""
 partialTwo=""
 newAlphabet=""
 message = input("Please enter the message you want to translate: ").lower()
-key = int(input("Please enter the number you want to shift by: "))
+key = int(input("Please enter the number you want to shift  (use negative to decrypt): "))
 
 if key == 0:
     newAlphabet = alphabet
